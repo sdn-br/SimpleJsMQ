@@ -1,0 +1,19 @@
+{
+  "name": "simplejsmq",
+  "version": "0.1.0",
+  "description": "Simple Message Broker for Javascript",
+  "main": "simpleJsMQ.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sdn-br/SimpleJsMQ.git"
+  },
+  "author": "Michael Virnstein",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/sdn-br/SimpleJsMQ/issues"
+  },
+  "homepage": "https://github.com/sdn-br/SimpleJsMQ#readme"
+}
