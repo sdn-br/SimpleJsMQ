@@ -377,7 +377,7 @@ let SimpleJsMQ = (function() {
 		#preSubInterval;
 		
 		constructor() {
-			this.#id = ++TopicManager.#lastId;
+			this.#id = ++MessageBroker.#lastId;
 			this.#topics = {};
 			this.#preSubscribers = {};
 			this.#preSubInterval = undefined;
@@ -557,6 +557,6 @@ let SimpleJsMQ = (function() {
 		Payload: Payload,
 		Event: Event,
 		Topic: Topic,
-		TopicManager: TopicManager
+		MessageBroker: MessageBroker
 	};
 })();
