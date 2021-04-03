@@ -67,6 +67,13 @@ let SimpleJsMQ = (function() {
 		#event;
 		#type;
 		#data;
+		
+		/**
+		 * Constructor
+		 * @param {Event} event 
+		 * @param {String} type 
+		 * @param {*} data 
+		 */
 		constructor(event, type, data) {
 			if (!(event instanceof Event)) {
 				throw new ValueErrorException('event is invalid');
@@ -81,18 +88,34 @@ let SimpleJsMQ = (function() {
 			this.#data = data;
 		}
 		
+		/**
+		 * get Id
+		 * @returns Integer
+		 */
 		getId() {
 			return this.#id;
 		};
 		
+		/**
+		 * get payload type
+		 * @returns String
+		 */
 		getType() {
 			return this.#type;
 		};
 		
+		/**
+		 * get data
+		 * @returns *
+		 */
 		getData() {
 			return this.#data;
 		};
 		
+		/**
+		 * get Object copy of Event
+		 * @returns Object
+		 */
 		getObject() {
 			return {
 				id: this.#id,
@@ -112,7 +135,14 @@ let SimpleJsMQ = (function() {
 		#topic;
 		#name;
 		#payload;
-		
+
+		/**
+		 * Constructor
+		 * @param {Topic} topic 
+		 * @param {String} eventName 
+		 * @param {String} dataType 
+		 * @param {*} data 
+		 */
 		constructor(topic, eventName, dataType, data) {
 			if (!(topic instanceof Topic)) {
 				throw new ValueErrorException('topic is invalid');
@@ -133,22 +163,42 @@ let SimpleJsMQ = (function() {
 			this.#payload = new Payload(this, dataType, data);
 		};
 		
+		/**
+		 * Get Id
+		 * @returns Integer
+		 */
 		getId() {
 			return this.#id;
 		};
 		
+		/**
+		 * Get Topic
+		 * @returns Topic
+		 */
 		getTopic() {
 			return this.#topic;
 		};
 		
+		/**
+		 * Get name
+		 * @returns String
+		 */
 		getName() {
 			return this.#name;
 		};
 		
+		/**
+		 * get Payload
+		 * @returns Payload
+		 */
 		getPayload() {
 			return this.#payload;
 		};
 		
+		/**
+		 * get object copy
+		 * @returns Object
+		 */
 		getObject() {
 			return {
 				id: this.#id,
@@ -168,8 +218,14 @@ let SimpleJsMQ = (function() {
 		#id
 		#name;
 		#subscribers;
-		#manager;
+		#broker;
+		#messageCount;
 		
+		/**
+		 * constructor
+		 * @param {String} name 
+		 * @throws ValueErrorException
+		 */
 		constructor(name) {
 			if (typeof name !== 'string' || name.trim().length === 0) {
 				throw new ValueErrorException('name is invalid');
@@ -177,10 +233,12 @@ let SimpleJsMQ = (function() {
 			this.#id = ++Topic.#lastId;
 			this.#name = name;
 			this.#subscribers = {};
+			this.#messageCount = 0;
 		};
 		
 		/**
 		 * get id
+		 * @returns Integer
 		 */ 
 		getId() {
 			return this.#id;
@@ -188,6 +246,7 @@ let SimpleJsMQ = (function() {
 		
 		/**
 		 * get name
+		 * @returns String
 		 */ 
 		getName() {
 			return this.#name;
@@ -195,6 +254,8 @@ let SimpleJsMQ = (function() {
 		
 		/**
 		 * get subscriber
+		 * @param {String} subscriberName
+		 * @returns Function|undefined
 		 */ 
 		getSubscriber(subscriberName) {
 			if (!this.isSubscribed(subscriberName)) {
@@ -205,6 +266,7 @@ let SimpleJsMQ = (function() {
 		
 		/**
 		 * get all subscribers
+		 * @returns Array
 		 */ 
 		getAllSubscribers() {
 			return Object.assign({}, this.#subscribers);
@@ -212,71 +274,94 @@ let SimpleJsMQ = (function() {
 		
 		/**
 		 * creates a new event
+		 * @param {String} eventType
+		 * @param {String} dataType
+		 * @param {*} data
+		 * @returns Event
+		 * @throws ValueErrorException
 		 */
 		#createEvent(eventType, dataType, data) {
 			return new Event(this, eventType, dataType, data);
 		};
 		
 		/**
-		 * set manager
+		 * set broker
+		 * @param {MessageBroker} broker
+		 * @throws ValueErrorException
 		 */
-		#setManager(manager) {
-			if (manager !== undefined && !(manager instanceof TopicManager)) {
-				throw new ValueErrorException('manager is invalid');
+		#setBroker(broker) {
+			if (broker !== undefined && !(broker instanceof MessageBroker)) {
+				throw new ValueErrorException('broker is invalid');
 			}
-			this.#manager = manager;
+			this.#broker = broker;
 		}
 		
 		/**
-		 * get Manger
+		 * get Broker
+		 * @returns MessageBroker|undefined
 		 */
-		getManager() {
-			return this.#manager;
+		getBroker() {
+			return this.#broker;
 		};
 		
 		/**
 		 * is managed
+		 * @returns Boolean
 		 */
 		isManaged() {
-			return this.getManager() !== undefined;
+			return this.getBroker() !== undefined;
 		};
 		
 		/**
-		 * add to a manager
+		 * add to a broker
+		 * @param {MessageBroker} broker
+		 * @throws IllegalOperationException
+		 * @throws valueErrorException
 		 */
-		addToManager(manager) {
-			if (this.isManaged() && this.getManager() !== manager) {
-				throw new IllegalOperationException('Already registered to a TopicManager');
+		addToBroker(broker) {
+			if (this.isManaged() && this.getBroker() !== broker) {
+				throw new IllegalOperationException('Already registered to a MessageBroker');
 			}
-			let m = this.getManager();
-			this.#setManager(manager);
-			if (m === undefined) {
-				manager.addTopic(this);
+			let b = this.getBroker();
+			this.#setBroker(broker);
+			if (b === undefined) {
+				broker.addTopic(this);
 			}
 		};
 		
 		/**
-		 * remove from a manager
+		 * remove from a broker
 		 */
-		removeFromManager() {
-			let m = this.getManager();
-			this.#setManager();
-			if (m !== undefined) {
-				m.removeTopic(this.getName());
+		removeFromBroker() {
+			let b = this.getBroker();
+			this.#setBroker(undefined);
+			if (b !== undefined) {
+				b.removeTopic(this.getName());
 			}
 		}
 		
 		/**
 		 * Get the name of the Topic
+		 * @returns String
 		 */
 		getName() {
 			return this.#name;
 		};
+
+		/**
+		 * Get number of published messages
+		 * @returns Integer
+		 */
+		getMessageCount() {
+			return this.#messageCount;
+		}
 		
 		/**
 		 * Publish sychronously
-		 * @param type
-		 * @param data
+		 * @param {String} eventType
+		 * @param {String} dataType
+		 * @param {*} data
+		 * @throws ValueErrorException
 		 */
 		publish (eventType, dataType, data) {
 			this.publishEvent(this.#createEvent(eventType, dataType, data));
@@ -284,7 +369,8 @@ let SimpleJsMQ = (function() {
 		
 		/**
 		 * Publish sychronously
-		 * @param event
+		 * @param {Event} event
+		 * @throws valueErrorException
 		 */
 		publishEvent(event) {
 			if (!(event instanceof Event)) {
@@ -293,12 +379,15 @@ let SimpleJsMQ = (function() {
 			Object.values(this.#subscribers).forEach(subscriber => {
 			   subscriber(event);
 			});
+			++this.#messageCount;
 		}
 		
 		/**
-		 * Register event in the queue and publish asynchronously
-		 * @param type
-		 * @param data
+		 * Register event in the Topic and publish asynchronously
+		 * @param {String} eventType
+		 * @param {String} dataType
+		 * @param {*} data
+		 * @throws ValueErroException
 		 */
 		async register(eventType, dataType, data) {
 			this.registerEvent(this.#createEvent(eventType, dataType, data), 1);
@@ -306,7 +395,8 @@ let SimpleJsMQ = (function() {
 		
 		/**
 		 * Register event in the queue and publish asynchronously
-		 * @param event
+		 * @param {Event} event
+		 * @throws ValueErrorException
 		 */
 		async registerEvent(event) {
 			if (!(event instanceof Event)) {
@@ -317,7 +407,7 @@ let SimpleJsMQ = (function() {
 		
 		/**
 		 * Returns true iff the given object is in the list of observers
-		 * @param subscriber
+		 * @param {String} subscriberName
 		 * @returns {boolean}
 		 */
 		isSubscribed(subscriberName) { 
@@ -329,8 +419,10 @@ let SimpleJsMQ = (function() {
 		
 		/**
 		 * Adds the provided object to the observers of this observable object
-		 * @param subscriber
-		 * @param filter
+		 * @param {String} subscriberName
+		 * @param {Function} callback
+		 * @throws ValueErrorException
+		 * @throws DuplicateKeyException
 		 */
 		subscribe(subscriberName, callback) {
 			if (typeof subscriberName !== 'string' || subscriberName.trim().length === 0) {
@@ -347,7 +439,7 @@ let SimpleJsMQ = (function() {
 
 		/**
 		 * Removes the provided objects from the observers (if it is among them)
-		 * @param s
+		 * @param {String} subscriberName
 		 */
 		unsubscribe(subscriberName) {
 			if (this.isSubscribed(subscriberName)) {
@@ -355,36 +447,47 @@ let SimpleJsMQ = (function() {
 			}
 		};
 		
+		/**
+		 * returns a object copy of the topic
+		 * @returns Object
+		 */
 		getObject() {
 			let subscribers = Object.keys(this.#subscribers);
 			return {
 				id: this.#id,
 				name: this.#name,
 				subscriberCount: subscribers.length,
-				subscribers: subscribers
+				subscribers: subscribers,
+				messageCount: this.#messageCount
 			};
 		};
 	};
 
 	/**
-	 * Class MessageBroker
+	 * Message Broker Class
 	 */
 	class MessageBroker {
 		static #lastId = 0;
 		#id;
+		#name;
 		#topics;
-		#preSubscribers;
-		#preSubInterval;
 		
-		constructor() {
+		/**
+		 * Constructor
+		 * @param {String} name 
+		 */
+		constructor(name) {
+			if (name !== undefined && name !== null && (typeof name !== 'string' || name.trim().length === 0)) {
+				throw new ValueErrorException('name is invalid');
+			} 
 			this.#id = ++MessageBroker.#lastId;
+			this.#name = (typeof name === 'string' ? name : 'MessageBroker_'+this.#id);
 			this.#topics = {};
-			this.#preSubscribers = {};
-			this.#preSubInterval = undefined;
 		};
 		
 		/**
 		 * getId	
+		 * @returns Integer
 		 */
 		getId() {
 			return this.#id;
@@ -392,16 +495,18 @@ let SimpleJsMQ = (function() {
 		
 		/**
 		 * creates a new managed Topic
+		 * @param {String} topicName
+		 * @returns Topic
 		 */
 		createTopic(topicName) {
 			let topic = new Topic(topicName);
-			topic.addToManager(this);
+			topic.addToBroker(this);
 			return topic;
 		};
 		
 		/**
-		 *  add a topic
-		 *  @param topic
+		 *  add an unmanaged topic to the broker
+		 *  @param {Topic} topic
 		 */
 		addTopic(topic) {
 			if (!(topic instanceof Topic)) {
@@ -414,21 +519,23 @@ let SimpleJsMQ = (function() {
 			let t = this.getTopic(topicName);
 			this.#topics[topicName] = topic;
 			if (t === undefined) {
-				topic.addToManager(this);
+				topic.addToBroker(this);
 			}
 		};
 		
 		/**
-		 *  add a topic
-		 *  @param topicName
+		 *  topic exists in broker
+		 *  @param {String} topicName
+		 *  @returns Boolean
 		 */
 		existsTopic(topicName) {
 			return this.#topics.hasOwnProperty(topicName);
 		};
 		
 		/**
-		 *  get topic
-		 *  @param topicName
+		 *  get a topic from broker
+		 *  @param {String} topicName
+		 *  @returns Topic|undefined
 		 */
 		getTopic(topicName) {
 			if (!this.existsTopic(topicName)) {
@@ -438,7 +545,8 @@ let SimpleJsMQ = (function() {
 		};
 		
 		/**
-		 *  get all topics
+		 * get all topics
+		 * @returns Array
 		 */
 		getAllTopics() {
 			let t = [];
@@ -448,17 +556,46 @@ let SimpleJsMQ = (function() {
 		
 		/**
 		 *  remove a topic
+		 * @param {String} topicName
 		 */
 		removeTopic(topicName) {
 			if (this.existsTopic(topicName)) {
 				let t = this.getTopic(topicName);
 				delete this.#topics[topicName];
 				if (t !== undefined) {
-					t.removeFromManager(this);
+					t.removeFromBroker(this);
 				}
 			}
 		};
 		
+		/**
+		 * subscribe to a topic
+		 * @param {String} topicName 
+		 * @param {String} subscriberName 
+		 * @param {Function} callback 
+		 */
+		subscribeToTopic(topicName, subscriberName, callback) {
+			if (!this.existsTopic(topicName)) {
+				this.createTopic(topicName);
+			}
+			this.getTopic(topicName).subscribe(subscriberName, callback);
+		};
+		
+		/**
+		 * unsubscribe to a topic
+		 * @param {String} topicName 
+		 * @param {String} subscriberName 
+		 */
+		 unsubscribeFromTopic(topicName, subscriberName) {
+			if (this.existsTopic(topicName)) {
+				this.getTopic(topicName).unsubscribe(subscriberName);
+			}
+		};
+		
+		/**
+		 * get Topic as Object copy
+		 * @returns Object
+		 */
 		getObject() {
 			let topics = [];
 			Object.values(this.#topics).forEach((t) => {
@@ -471,83 +608,11 @@ let SimpleJsMQ = (function() {
 				topics: topics
 			};
 		};
-		
-		#hasPresubscribers(topicName) {
-			return this.#preSubscribers.hasOwnProperty(topicName);
-		};
-		
-		isPresubscribed(topicName, subscriberName) {
-			return (this.#hasPresubscribers(topicName) && this.#preSubscribers[topicName].hasOwnProperty(subscriberName));
-		};
-		
-		#addPresubscriber(topicName, subscriberName, callback) {
-			if (typeof topicName !== 'string' || topicName.trim().length === 0) {
-				throw new ValueErrorException('topicName is invalid');
-			} 
-			if (typeof subscriberName !== 'string' || subscriberName.trim().length === 0) {
-				throw new ValueErrorException('subscriberName is invalid');
-			}
-			if (typeof callback !== 'function') {
-				throw new ValueErrorException('callback is not a function');
-			}
-			if (!this.#hasPresubscribers(topicName)) {
-				this.#preSubscribers[topicName] = {};
-				this.#preSubInterval = setInterval(() => { 
-					Object.keys(this.#preSubscribers).forEach((t) => {
-						Object.keys(this.#preSubscribers[t]).forEach((s) => {
-							this.#tryToSubscribePreSubscriber(t, s);
-						});
-					})
-				}, 1000);
-			}
-			if (this.isPresubscribed(topicName, subscriberName)) {
-				throw new DuplicateKeyException(`Subscriber with name '${subscriberName}' already exists`);
-			}
-			this.#preSubscribers[topicName][subscriberName] = callback;
-		};
-		
-		#removePresubscriber(topicName, subscriberName) {
-			if (typeof topicName !== 'string' || topicName.trim().length === 0) {
-				throw new ValueErrorException('topicName is invalid');
-			} 
-			if (typeof subscriberName !== 'string' || subscriberName.trim().length === 0) {
-				throw new ValueErrorException('subscriberName is invalid');
-			}
-			if (this.isPresubscribed(topicName, subscriberName)) {
-				delete this.#preSubscribers[topicName][subscriberName];
-				if (Object.keys(this.#preSubscribers[topicName]).length === 0) {
-					delete this.#preSubscribers[topicName];
-				}
-				if (Object.keys(this.#preSubscribers).length === 0) {
-					clearInterval(this.#preSubInterval);
-				}
-			}
-		};
-		
-		#tryToSubscribePreSubscriber(topicName, subscriberName) {
-			if (this.existsTopic(topicName)) {
-				this.getTopic(topicName).subscribe(subscriberName, this.#preSubscribers[topicName][subscriberName]);
-				this.#removePresubscriber(topicName, subscriberName);
-			}				
-		};
-		
-		subscribeToTopic(topicName, subscriberName, callback) {
-			if (this.existsTopic(topicName)) {
-				this.getTopic(topicName).subscribe(subscriberName, callback);
-			} else {
-				this.#addPresubscriber(topicName, subscriberName, callback);
-			}
-		};
-		
-		unsubscribeFromTopic(topicName, subscriberName) {
-			if (this.existsTopic(topicName)) {
-				this.getTopic(topicName).unsubscribe(subscriberName);
-			} else {
-				this.#removePresubscriber(topicName, subscriberName);
-			}
-		};
 	}
 	
+	/**
+	 * Global Exports
+	 */
 	return {
 		Exception: Exception,
 		ValueErrorException: ValueErrorException,
