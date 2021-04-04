@@ -505,6 +505,19 @@ let SimpleJsMQ = (function() {
 		};
 		
 		/**
+		 * creates a new managed Topic if it doesn't exists
+		 * @param {String} topicName
+		 * @returns Topic
+		 */
+		createTopicIfNotExists(topicName) {
+			let topic = this.getTopic(topicName);
+			if (topic === undefined) {
+				topic = this.createTopic(topicName);
+			}
+			return topic;
+		};
+		
+		/**
 		 *  add an unmanaged topic to the broker
 		 *  @param {Topic} topic
 		 */
