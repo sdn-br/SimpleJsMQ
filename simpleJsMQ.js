@@ -159,7 +159,7 @@ let SimpleJsMQ = (function() {
 			
 			this.#id = ++Event.#lastId;	
 			this.#topic = topic;
-			this.#name = eventName;
+			this.#name = eventName.trim();
 			this.#payload = new Payload(this, dataType, data);
 		};
 		
@@ -231,7 +231,7 @@ let SimpleJsMQ = (function() {
 				throw new ValueErrorException('name is invalid');
 			} 
 			this.#id = ++Topic.#lastId;
-			this.#name = name;
+			this.#name = name.trim();
 			this.#subscribers = {};
 			this.#messageCount = 0;
 		};
@@ -414,7 +414,7 @@ let SimpleJsMQ = (function() {
 			if (typeof subscriberName !== 'string' || subscriberName.trim().length === 0) {
 				throw new ValueErrorException('subscriberName is invalid');
 			}
-			return this.#subscribers.hasOwnProperty(subscriberName); 
+			return this.#subscribers.hasOwnProperty(subscriberName.trim()); 
 		};
 		
 		/**
@@ -431,6 +431,7 @@ let SimpleJsMQ = (function() {
 			if (typeof callback !== 'function') {
 				throw new ValueErrorException('callback is not a function');
 			}
+			subscriberName = subscriberName.trim();
 			if (this.isSubscribed(subscriberName)){
 				throw new DuplicateKeyException(`Subscriber with name '${subscriberName}' already exists`);
 			}
@@ -443,7 +444,7 @@ let SimpleJsMQ = (function() {
 		 */
 		unsubscribe(subscriberName) {
 			if (this.isSubscribed(subscriberName)) {
-				delete this.#subscribers[subscriberName];
+				delete this.#subscribers[subscriberName.trim()];
 			}
 		};
 		
@@ -481,7 +482,7 @@ let SimpleJsMQ = (function() {
 				throw new ValueErrorException('name is invalid');
 			} 
 			this.#id = ++MessageBroker.#lastId;
-			this.#name = (typeof name === 'string' ? name : 'MessageBroker_'+this.#id);
+			this.#name = (typeof name === 'string' ? name.trim() : 'MessageBroker_'+this.#id);
 			this.#topics = {};
 		};
 		
@@ -542,7 +543,7 @@ let SimpleJsMQ = (function() {
 		 *  @returns Boolean
 		 */
 		existsTopic(topicName) {
-			return this.#topics.hasOwnProperty(topicName);
+			return this.#topics.hasOwnProperty(topicName.trim());
 		};
 		
 		/**
@@ -554,7 +555,7 @@ let SimpleJsMQ = (function() {
 			if (!this.existsTopic(topicName)) {
 				return;
 			}
-			return this.#topics[topicName];
+			return this.#topics[topicName.trim()];
 		};
 		
 		/**
@@ -574,7 +575,7 @@ let SimpleJsMQ = (function() {
 		removeTopic(topicName) {
 			if (this.existsTopic(topicName)) {
 				let t = this.getTopic(topicName);
-				delete this.#topics[topicName];
+				delete this.#topics[topicName.trim()];
 				if (t !== undefined) {
 					t.removeFromBroker(this);
 				}
