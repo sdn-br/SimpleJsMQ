@@ -11,17 +11,10 @@ let SimpleJsMQ = (function() {
 	/**
 	 * Class Exception
 	 */
-	class Exception {
-		constructor(msg) {
-			this.name = 'Exception';
-			this.message = msg;
-		};
-	}
-
 	/**
 	 * Class ValueErrorException
 	 */
-	class ValueErrorException extends Exception {
+	class ValueErrorException extends Error {
 		constructor(msg) {
 			super(msg);
 			this.name = 'ValueErrorException';
@@ -31,7 +24,7 @@ let SimpleJsMQ = (function() {
 	/**
 	 * Class DuplicateKeyException
 	 */
-	class DuplicateKeyException extends Exception {
+	class DuplicateKeyException extends Error {
 		constructor(msg) {
 			super(msg);
 			this.name = 'DuplicateKeyException';
@@ -41,7 +34,7 @@ let SimpleJsMQ = (function() {
 	/**
 	 * Class NotFoundException
 	 */
-	class NotFoundException extends Exception {
+	class NotFoundException extends Error {
 		constructor(msg) {
 			super(msg);
 			this.name = 'NotFoundException';
@@ -51,7 +44,7 @@ let SimpleJsMQ = (function() {
 	/**
 	 * Class IllegalOperationException
 	 */
-	class IllegalOperationException extends Exception {
+	class IllegalOperationException extends Error {
 		constructor(msg) {s
 			super(msg);
 			this.name = 'IllegalOperationException';
@@ -628,7 +621,6 @@ let SimpleJsMQ = (function() {
 	 * Global Exports
 	 */
 	return {
-		Exception: Exception,
 		ValueErrorException: ValueErrorException,
 		DuplicateKeyException: DuplicateKeyException,
 		NotFoundException: NotFoundException,
