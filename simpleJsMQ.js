@@ -5,6 +5,9 @@
  *
  * @author Michael Virnstein
  * @version 0.9.0
+ * @todo normalizing error messages
+ * @todo polish comments and descriptions
+ * @todo retry on callback error
  * Copyright © 2021 Michael Virnstein
  */
 let SimpleJsMQ = (function() {
@@ -487,7 +490,7 @@ let SimpleJsMQ = (function() {
 		 * @param {Boolean} failed
 		 * @protected 
 		 */
-		 _postReceiveHook(event, callback, failed) { };
+		_postReceiveHook(event, callback, failed) { };
 
 		 /**
 		 * Take next queued event from the queue and hand it the callback
@@ -553,7 +556,7 @@ let SimpleJsMQ = (function() {
 		 * Get number of published messages
 		 * @returns Integer
 		 */
-		 getDeliveryFailedCount() {
+		getDeliveryFailedCount() {
 			return this._deliveryFailedCount;
 		};
 
@@ -695,7 +698,7 @@ let SimpleJsMQ = (function() {
 		 * @returns Boolean
 		 * @throws DuplicationError
 		 */
-		 _preSubscribeHook(subscriberName, callback) {
+		_preSubscribeHook(subscriberName, callback) {
 			if (this.isSubscribed(subscriberName)){
 				throw new DuplicationError(`Subscriber with name '${subscriberName}' already exists`);
 			}
@@ -795,9 +798,6 @@ let SimpleJsMQ = (function() {
 	 */
 	class EventBroker {
 		static _lastId = 0;
-		_id;
-		_name;
-		_eventHandlers;
 		
 		/**
 		 * Constructor
@@ -865,12 +865,12 @@ let SimpleJsMQ = (function() {
 				throw new ValueError('Object of type EventHandler expected');
 			}
 			let name = eventHandler.getName();
-			if (this.existsEventHandler(name) && this.getEventHandler(name) !== eventHandler) {
+			let h = this.getEventHandler(name);
+			if (h !== undefined && h !== eventHandler) {
 				throw new DuplicationError(`EventHandler with name '${name}' already exists`);
 			}
-			let t = this.getEventHandler(name);
 			this._eventHandlers[name] = eventHandler;
-			if (t === undefined) {
+			if (h === undefined) {
 				eventHandler.manage(this);
 			}
 		};
