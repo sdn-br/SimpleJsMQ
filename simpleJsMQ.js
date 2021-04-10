@@ -244,6 +244,8 @@ let SimpleJsMQ = (function() {
 		/**
 		 * constructor
 		 * @param {String} name 
+		 * @param {Object} options
+		 * @param {EventBroker} broker
 		 * @throws ValueError
 		 */
 		constructor(name, options = {}, broker = undefined) {
@@ -322,7 +324,7 @@ let SimpleJsMQ = (function() {
 		
 		/**
 		 * set broker
-		 * @param {EventBrokerr|undefined} broker
+		 * @param {EventBroker|undefined} broker
 		 * @throws ValueError
 		 */
 		_setBroker(broker) {
@@ -367,6 +369,8 @@ let SimpleJsMQ = (function() {
 		
 		/**
 		 * remove from broker
+		 * @param {EventBroker} broker
+		 * @throws IllegalOperationError
 		 */
 		unmanage(broker) {
 			if (broker !== this.getBroker()) {
@@ -439,7 +443,8 @@ let SimpleJsMQ = (function() {
 		_preDequeueHook(callback) { return true; };
 
 		/**
-		 * Called before value is received from the queue
+		 * Called after value has been received from the queue
+		 * @param {Event} event
 		 * @param {Function} callback
 		 * @returns Boolean
 		 * @protected 
@@ -465,7 +470,7 @@ let SimpleJsMQ = (function() {
 		_callbackSuccessHook(event, callback) { }; 
 
 		/**
-		 * Called at start of exception handling, before unshifting event into queue
+		 * Called at start of exception handling, before unshifting event back into queue
 		 * @param {Event} event
 		 * @param {Function} callback
 		 * @param {Exception} failed
@@ -481,7 +486,7 @@ let SimpleJsMQ = (function() {
 		 * @param {Exception} exception
 		 * @protected 
 		 */
-		_postCallbackFailedHook(event, callback, exception) { return true; };
+		_postCallbackFailedHook(event, callback, exception) { };
 
 		/**
 		 * Called at end of receive process
@@ -534,7 +539,7 @@ let SimpleJsMQ = (function() {
 		};
 		
 		/**
-		 * get subscriber
+		 * get subscribers
 		 * @param {String} subscriberName
 		 * @returns Array
 		 */ 
@@ -581,7 +586,7 @@ let SimpleJsMQ = (function() {
 		 * @param {String} subscriberName
 		 * @param {Function} callback
 		 * @throws ValueError
-		 * @throws DuplicationeyError
+		 * @throws Error
 		 */
 		subscribe(subscriberName, callback) {
 			if (typeof subscriberName !== 'string' || subscriberName.trim().length === 0) {
@@ -597,7 +602,7 @@ let SimpleJsMQ = (function() {
 		};
 
 		/**
-		 * called before subscriber is removed fromthe list of subscribers
+		 * called before subscriber is removed from the list of subscribers
 		 * @param {String} subscriberName 
 		 * @param {Function} callback 
 		 * @returns Boolean
@@ -766,12 +771,12 @@ let SimpleJsMQ = (function() {
 		};
 
 		/**
-		 * Send all queued messages, if 
+		 * Send all queued messages, if queue
 		 * @param {String} subscriberName 
 		 * @param {Function} callback 
 		 */
 		_postSubscribeHook(subscriberName, callback) {
-			if (this._subscribers.length === 1) {
+			if (this._subscribers.length > 0) {
 				Promise.resolve().then(() => {
 					while (this._eventQueue.length > 0) {
 						this._dispatchEvent();
@@ -838,6 +843,8 @@ let SimpleJsMQ = (function() {
 		 * creates a new managed Event Handler
 		 * @param {String} type
 		 * @param {String} name
+		 * @param {Object} options
+		 * @param {Boolean} failOnExistence
 		 * @returns EventHandler
 		 */
 		createEventHandler(type, name, options = {}, failOnExistence = true) {
@@ -858,7 +865,7 @@ let SimpleJsMQ = (function() {
 		
 		/**
 		 *  add an unmanaged EventHandler to the broker
-		 *  @param {Topic} eventHandler
+		 *  @param {EventHandler} eventHandler
 		 */
 		addEventHandler(eventHandler) {
 			if (!(eventHandler instanceof EventHandler)) {
@@ -901,14 +908,13 @@ let SimpleJsMQ = (function() {
 		 * @returns Array
 		 * @throws ValueError
 		 */
-		getAllEventHandlers(type) {
+		getAllEventHandlers(type = undefined) {
 			if (type != undefined && !this._isValidEventHandlerType(type)) {
 				throw new ValueError('type is invalid');
 			}
-			type = this._capitalizeFirstLetter(type);
 			let h = [];
 			Object.values(this._eventHandlers).forEach(eventHandler => {
-				if (type === undefined || eventHandler.constructor.name === type) {
+				if (type === undefined || eventHandler.constructor.name === this._capitalizeFirstLetter(type)) {
 					h.push(eventHandler);
 				}
 			});
